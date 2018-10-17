@@ -10,7 +10,7 @@ def load_data(filename):
     return df
 
 # load 2014-2015 stats for each team
-def create_14_15_season_csv():
+def create_14_15_team_csv():
     games = 82
     teams = 30
     df = pd.read_csv("nba.games.stats.csv")
@@ -31,10 +31,15 @@ def create_14_15_season_csv():
     df_1415.to_csv("nba.team.1415.csv")
     return
 
+def create_14_15_season_csv():
+    df = pd.read_csv("nba.games.stats.csv")
+    # only leave 14 15 season
+    # remove every column but team, home, opponent, WINorLoss
+
 if __name__ == "__main__":
     print 'Hello'
     # Creates csv for average team stats
-    #create_14_15_season_csv()
+    #create_14_15_team_csv()
 
     # Figure out most important stats
     df = load_data("nba.team.1415.csv")
@@ -42,3 +47,10 @@ if __name__ == "__main__":
 
     # Binning data teampoints next by 3 points
 
+    # Predict nba game outcome, predict score of each team
+    # Two teams - each team has stats - percentages
+    # Training set - 50 games from each team, feature the one team stats vs other, target 1 or 2
+    # Testing set - 10 games from each team,
+    # Validation - 10 games from each team
+
+    #feature - team 1 stats, team 1 location, team 2 stats, target - team 1  w/l
