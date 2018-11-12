@@ -34,26 +34,47 @@ def create_14_15_team_csv():
 # Creates a table of all match ups and result of 14/15 season
 def create_14_15_season_csv():
     df = pd.read_csv("nba.games.stats.csv")
-    keep_columns = ["Team", "Game", "Date", "Home", "Opponent", "WINorLOSS"]
+    keep_columns = ["Team", "Game", "Home", "Opponent", "WINorLOSS"]
     df = df[keep_columns]
     df = df[:games*teams]
     df.to_csv("nba.season.1415.csv")
     # only leave 14 15 season
     # remove every column but team, home, opponent, WINorLoss
 
-#feature - team 1 stats, team 1 location, team 2 stats, target - team 1  w/l
-def load_features():
+#feature - team 1 stats, team 1 location target - team 1  w/l
+def create_features_csv():
     print 'making feature'
     df_keys = load_data("nba.season.1415.csv")
     df_values = load_data("nba.team.1415.csv")
+    df = df_keys.merge(df_values, on=["Team"])
+    df.drop(columns=["Unnamed: 0_x", "Unnamed: 0_y"], axis=1, inplace=True)
+    df.to_csv("features.csv")
 
+# Fix features so they are ready for machine learning
+def feature_engineering():
+    df = pd.read_csv("features.csv")
 
+    # Team
+    team_names = df["Team"].unique()
+    team_names_dict = dict(zip(team_names, range(len(team_names))))
+    df["Team"].applymap(lambda s: team_names_dict.get(s) if s in team_names_dict else s)
+
+    # 1 for WIN, 0 for LOSS
+    df['WINorLOSS'] = pd.get_dummies(df['WINorLOSS'])['W']
 
 if __name__ == "__main__":
     print 'Hello'
 
     # Creates csv for average team stats
     #create_14_15_team_csv()
+
+    # Creates csv for season keys
+    #create_14_15_season_csv()
+
+    #Creates features csv
+    #create_features_csv()
+
+    feature_engineering()
 
     # Figure out most important stats
     #df = load_data("nba.team.1415.csv")
