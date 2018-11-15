@@ -1,10 +1,5 @@
-import time
-import tensorflow as tf
-import numpy as np
-import gzip
-import matplotlib.pyplot as plt
 import pandas as pd
-from tensorflow.python.data import Dataset
+import tensorflow as tf
 
 games = 82
 teams = 30
@@ -86,9 +81,9 @@ def load_features_labels():
 
 # Input function used with dnn_classifier returns iterators of features, labels
 def input_function(features, targets, batch_size=1, shuffle=True, num_epochs=None):
-
+    
     # Construct a dataset, and configure batching/repeating.
-    ds = Dataset.from_tensor_slices((features, targets))
+    ds = tf.data.Dataset.from_tensor_slices((features, targets))
     ds = ds.batch(batch_size).repeat(num_epochs)
 
     # Shuffle the data, if specified.
@@ -116,10 +111,18 @@ if __name__ == "__main__":
     # Fix feature values
     #feature_engineering()
 
-
+    print tf.__version__
     features, labels = load_features_labels()
+    #2459
+    training_features = features["data"][0:2000]
+    training_labels = labels[0:2000]
+    test_features = features["data"][2000:2200]
+    test_labels = labels[2000:2200]
+    validation_features = features["data"][2200:2460]
+    validation_targets = labels[2200: 2460]
 
-
+    # Feature column for classifier
+    feature_columns = [tf.feature_column.numeric_column("data", shape=18)]
 
     # Binning data teampoints next by 3 points
 
