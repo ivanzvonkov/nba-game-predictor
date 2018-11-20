@@ -1,5 +1,7 @@
+import time
 import pandas as pd
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 games = 82
 teams = 30
@@ -81,7 +83,7 @@ def load_features_labels():
 
 # Input function used with dnn_classifier returns iterators of features, labels
 def input_function(features, targets, batch_size=1, shuffle=True, num_epochs=None):
-    
+
     # Construct a dataset, and configure batching/repeating.
     ds = tf.data.Dataset.from_tensor_slices((features, targets))
     ds = ds.batch(batch_size).repeat(num_epochs)
@@ -111,23 +113,95 @@ if __name__ == "__main__":
     # Fix feature values
     #feature_engineering()
 
-    print tf.__version__
     features, labels = load_features_labels()
-    #2459
     training_features = features["data"][0:2000]
     training_labels = labels[0:2000]
-    test_features = features["data"][2000:2200]
-    test_labels = labels[2000:2200]
-    validation_features = features["data"][2200:2460]
-    validation_targets = labels[2200: 2460]
+    testing_features = features["data"][2000:2200]
+    testing_labels = labels[2000:2200]
+    validation_features = features["data"][2200:labels.size]
+    validation_labels = labels[2200: labels.size]
 
     # Feature column for classifier
     feature_columns = [tf.feature_column.numeric_column("data", shape=18)]
 
-    # Binning data teampoints next by 3 points
+    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=100)
 
-    # Predict nba game outcome, predict score of each team
-    # Two teams - each team has stats - percentages
-    # Training set - 50 games from each team, feature the one team stats vs other, target 1 or 2
-    # Testing set - 10 games from each team,
-    # Validation - 10 games from each team
+    # Testing input fuction, returning iterator, shuffle automatically on
+    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=100)
+
+    # Prediction input function, one epoch
+    prediction_input_fn_training = lambda: input_function(training_features, training_labels, num_epochs=1,shuffle=False)
+
+    # Prediction input function, one epoch
+    prediction_input_fn_testing = lambda: input_function(testing_features, testing_labels, num_epochs=1, shuffle=False)
+
+    # Prediction input validation function, one epoch
+    prediction_input_fn_validation = lambda: input_function(validation_features, validation_labels, num_epochs=1, shuffle=False)
+
+    print 'Setting up classifier'
+    dnn_classifier = tf.estimator.DNNClassifier(
+        #model_dir=os.getcwd() + "/model/mnist-model",
+        feature_columns=feature_columns,
+        n_classes=10,
+        hidden_units=[10, 20, 10],
+        optimizer=tf.train.ProximalAdagradOptimizer(
+            learning_rate=0.011
+        )
+    )
+
+    training_error = []
+    testing_error = []
+
+    # Loop for training
+    for i in range(0, 10):
+        print '------------------------'
+        print 'RUN: ', i + 1
+        print '------------------------'
+        start_time = time.time()
+        _ = dnn_classifier.train(
+            input_fn=training_input_fn,
+            steps=50
+        )
+        end_time = time.time()
+        print 'Training classifier: ', end_time - start_time
+
+        # Calculate log loss
+        training_predictions = list(dnn_classifier.predict(input_fn=prediction_input_fn_training))  # Array of prediction percentages
+        training_probabilities = np.array([item['probabilities'] for item in training_predictions])  # 2d array of percentages of [0.043, ...]
+        training_class_ids = np.array([item['class_ids'][0] for item in training_predictions])  # Array of prediction of 7
+        training_pred_one_hot = tf.keras.utils.to_categorical(training_class_ids,2)  # 2d one hot array of [0. 0. ... 1. 0. 0.]
+
+        testing_predictions = list(dnn_classifier.predict(input_fn=prediction_input_fn_testing))
+        testing_probabilities = np.array([item['probabilities'] for item in testing_predictions])
+        testing_class_ids = np.array([item['class_ids'][0] for item in testing_predictions])
+        testing_pred_one_hot = tf.keras.utils.to_categorical(testing_class_ids, 2)
+
+        training_log_loss = metrics.log_loss(training_targets, training_pred_one_hot)
+        testing_log_loss = metrics.log_loss(testing_targets, testing_pred_one_hot)
+
+        training_error.append(training_log_loss)
+        testing_error.append(testing_log_loss)
+
+        print("%0.2f" % training_log_loss)
+        print("%0.2f" % testing_log_loss)
+
+    # Calculate final predictions (not probabilities, as above).
+    testing_predictions = dnn_classifier.predict(input_fn=prediction_input_fn_testing)
+    testing_predictions = np.array([item['class_ids'][0] for item in testing_predictions])
+    testing_accuracy = metrics.accuracy_score(testing_targets, testing_predictions)
+    print("Testing accuracy: %0.2f" % testing_accuracy)
+
+    validation_predictions = dnn_classifier.predict(input_fn=prediction_input_fn_validation)
+    validation_predictions = np.array([item['class_ids'][0] for item in validation_predictions])
+    validation_accuracy = metrics.accuracy_score(validation_targets, validation_predictions)
+    print("Validation accuracy: %0.2f" % validation_accuracy)
+
+    # Output a graph of loss metrics over periods.
+    plt.ylabel("LogLoss")
+    plt.xlabel("Periods")
+    plt.title("LogLoss vs. Periods")
+    plt.plot(training_error, label="training")
+    plt.plot(testing_error, label="testing")
+    plt.legend()
+    plt.show()
+
