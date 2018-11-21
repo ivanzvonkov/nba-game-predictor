@@ -2,6 +2,9 @@ import time
 import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import metrics
+
 
 games = 82
 teams = 30
@@ -76,10 +79,10 @@ def feature_engineering():
 
 # Loads features and labels
 def load_features_labels():
-    data = pd.read_csv("features.csv")
-    labels = data["WINorLOSS"]
-    data.drop("WINorLOSS", axis=1, inplace=True)
-    return {"data": data}, labels
+    features = pd.read_csv("features.csv")
+    labels = features["WINorLOSS"]
+    features.drop("WINorLOSS", axis=1, inplace=True)
+    return features, labels
 
 # Input function used with dnn_classifier returns iterators of features, labels
 def input_function(features, targets, batch_size=1, shuffle=True, num_epochs=None):
@@ -114,11 +117,11 @@ if __name__ == "__main__":
     #feature_engineering()
 
     features, labels = load_features_labels()
-    training_features = features["data"][0:2000]
+    training_features = {"data": features[0:2000]}
     training_labels = labels[0:2000]
-    testing_features = features["data"][2000:2200]
+    testing_features = {"data": features[2000:2200]}
     testing_labels = labels[2000:2200]
-    validation_features = features["data"][2200:labels.size]
+    validation_features = {"data": features[2200:labels.size]}
     validation_labels = labels[2200: labels.size]
 
     # Feature column for classifier
@@ -142,10 +145,10 @@ if __name__ == "__main__":
     dnn_classifier = tf.estimator.DNNClassifier(
         #model_dir=os.getcwd() + "/model/mnist-model",
         feature_columns=feature_columns,
-        n_classes=10,
+        n_classes=2,
         hidden_units=[10, 20, 10],
         optimizer=tf.train.ProximalAdagradOptimizer(
-            learning_rate=0.011
+            learning_rate=0.1
         )
     )
 
@@ -176,8 +179,8 @@ if __name__ == "__main__":
         testing_class_ids = np.array([item['class_ids'][0] for item in testing_predictions])
         testing_pred_one_hot = tf.keras.utils.to_categorical(testing_class_ids, 2)
 
-        training_log_loss = metrics.log_loss(training_targets, training_pred_one_hot)
-        testing_log_loss = metrics.log_loss(testing_targets, testing_pred_one_hot)
+        training_log_loss = metrics.log_loss(training_labels, training_pred_one_hot)
+        testing_log_loss = metrics.log_loss(testing_labels, testing_pred_one_hot)
 
         training_error.append(training_log_loss)
         testing_error.append(testing_log_loss)
@@ -188,12 +191,12 @@ if __name__ == "__main__":
     # Calculate final predictions (not probabilities, as above).
     testing_predictions = dnn_classifier.predict(input_fn=prediction_input_fn_testing)
     testing_predictions = np.array([item['class_ids'][0] for item in testing_predictions])
-    testing_accuracy = metrics.accuracy_score(testing_targets, testing_predictions)
+    testing_accuracy = metrics.accuracy_score(testing_labels, testing_predictions)
     print("Testing accuracy: %0.2f" % testing_accuracy)
 
     validation_predictions = dnn_classifier.predict(input_fn=prediction_input_fn_validation)
     validation_predictions = np.array([item['class_ids'][0] for item in validation_predictions])
-    validation_accuracy = metrics.accuracy_score(validation_targets, validation_predictions)
+    validation_accuracy = metrics.accuracy_score(validation_labels, validation_predictions)
     print("Validation accuracy: %0.2f" % validation_accuracy)
 
     # Output a graph of loss metrics over periods.
