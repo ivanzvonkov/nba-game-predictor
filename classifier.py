@@ -45,13 +45,13 @@ def create_raw_features_csv():
     pre ="v."
     df_keys = pd.read_csv("nba.season.1415.csv")
     df_values = pd.read_csv("nba.team.1415.csv")
-    #opp_df_values = df_values.rename(columns=lambda col_name: pre+col_name)
+    opp_df_values = df_values.rename(columns=lambda col_name: pre+col_name)
 
     df = df_keys.merge(df_values, on=["Team"])
-    #df = df.merge(opp_df_values, left_on=["Opponent"], right_on=[pre+"Team"])
+    df = df.merge(opp_df_values, left_on=["Opponent"], right_on=[pre+"Team"])
 
     df.drop(columns=["Unnamed: 0_x", "Unnamed: 0_y"], axis=1, inplace=True)
-    #df.drop(columns=[pre+"Unnamed: 0", pre+"Team"], axis=1, inplace=True)
+    df.drop(columns=[pre+"Unnamed: 0", pre+"Team"], axis=1, inplace=True)
     df.to_csv("raw_features.csv")
 
 # Fix features so they are ready for machine learning
@@ -125,12 +125,12 @@ if __name__ == "__main__":
     validation_labels = labels[2200: labels.size]
 
     # Feature column for classifier
-    feature_columns = [tf.feature_column.numeric_column("data", shape=18)]
+    feature_columns = [tf.feature_column.numeric_column("data", shape=34)]
 
-    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=100)
+    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=300)
 
     # Testing input fuction, returning iterator, shuffle automatically on
-    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=100)
+    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=300)
 
     # Prediction input function, one epoch
     prediction_input_fn_training = lambda: input_function(training_features, training_labels, num_epochs=1,shuffle=False)
@@ -142,13 +142,13 @@ if __name__ == "__main__":
     prediction_input_fn_validation = lambda: input_function(validation_features, validation_labels, num_epochs=1, shuffle=False)
 
     print 'Setting up classifier'
-    dnn_classifier = tf.estimator.DNNClassifier(
+    dnn_classifier = tf.estimator.LinearClassifier(
         #model_dir=os.getcwd() + "/model/mnist-model",
         feature_columns=feature_columns,
-        n_classes=2,
-        hidden_units=[10, 20, 10],
-        optimizer=tf.train.ProximalAdagradOptimizer(
-            learning_rate=0.1
+        #hidden_units=[10, 20, 10],
+        optimizer = tf.train.FtrlOptimizer(
+            learning_rate=0.01,
+            l1_regularization_strength=0.005
         )
     )
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         start_time = time.time()
         _ = dnn_classifier.train(
             input_fn=training_input_fn,
-            steps=50
+            steps=300
         )
         end_time = time.time()
         print 'Training classifier: ', end_time - start_time
