@@ -70,10 +70,21 @@ def feature_engineering():
     df['WINorLOSS'] = pd.get_dummies(df['WINorLOSS'])['W']
     df.drop(columns=["Unnamed: 0"], axis=1, inplace=True)
 
+    # Drop if correlation is less than 0.1
     corr = df.corr()['WINorLOSS']
     for key, value in corr.items():
         if (abs(value) < 0.1):
             df.drop([key], axis=1, inplace=True)
+
+    # Scale down values
+    skip_rows = ['Unnamed: 0','Team','Game','Home','Opponent','WINorLOSS']
+    for column in df:
+        if column not in skip_rows:
+            median = df[column].median()
+            std = df[column].std()
+            df[column] = df[column].apply(lambda val: (val-median)/std)
+
+
 
     df.to_csv("features.csv")
 
@@ -148,7 +159,7 @@ if __name__ == "__main__":
         #hidden_units=[10, 20, 10],
         optimizer = tf.train.FtrlOptimizer(
             learning_rate=0.01,
-            l1_regularization_strength=0.005
+            l1_regularization_strength=0.015
         )
     )
 
@@ -163,7 +174,7 @@ if __name__ == "__main__":
         start_time = time.time()
         _ = dnn_classifier.train(
             input_fn=training_input_fn,
-            steps=300
+            steps=800
         )
         end_time = time.time()
         print 'Training classifier: ', end_time - start_time
