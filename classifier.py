@@ -58,13 +58,13 @@ def create_raw_features_csv():
 def feature_engineering():
     df = pd.read_csv("raw_features.csv")
 
-    # Convert all teams to numbers
-    team_names = df["Team"].unique()
-    team_names_dict = dict(zip(team_names, range(len(team_names))))
-    df = df.replace(team_names_dict)
-
     # Convert Home to 1 or 0
-    df["Home"] = pd.get_dummies(df["Home"])["Home"]
+    #df["Home"] = pd.get_dummies(df["Home"])["Home"]
+
+    # Remove all non home games (removes duplicates) and delete home column
+    df = df[df.Home == "Home"]
+    # Drop home column
+    df.drop("Home", axis=1, inplace=True)
 
     # Convert WinLoss to 1 or 0
     df['WINorLOSS'] = pd.get_dummies(df['WINorLOSS'])['W']
@@ -72,25 +72,36 @@ def feature_engineering():
 
     # Drop if correlation is less than 0.1
     corr = df.corr()['WINorLOSS']
+    skip_rows = ['Team', 'Game', 'Opponent']
     for key, value in corr.items():
-        if (abs(value) < 0.1):
+        if (abs(value) < 0.1) and (key not in skip_rows):
             df.drop([key], axis=1, inplace=True)
 
     # Scale down values
-    skip_rows = ['Unnamed: 0','Team','Game','Home','Opponent','WINorLOSS']
+    skip_rows = ['Unnamed: 0','Team','Game','Opponent','WINorLOSS']
     for column in df:
         if column not in skip_rows:
             median = df[column].median()
             std = df[column].std()
             df[column] = df[column].apply(lambda val: (val-median)/std)
 
+    # Convert all teams to numbers
+    # team_names = df["Team"].unique()
+    # team_names_dict = dict(zip(team_names, range(len(team_names))))
+    # df = df.replace(team_names_dict)
 
+    # Convert teams to one hot encoding
+    new_teams = pd.get_dummies(data=df["Team"], prefix='h.')
+    new_opps = pd.get_dummies(data=df["Opponent"], prefix='a.')
+    df.drop("Team", axis=1, inplace=True)
+    df.drop("Opponent", axis=1, inplace=True)
+    df = pd.concat([df, new_teams, new_opps], axis=1, sort=False)
 
     df.to_csv("features.csv")
 
 # Loads features and labels
 def load_features_labels():
-    features = pd.read_csv("features.csv")
+    features = pd.read_csv("features.csv").sample(frac=1)
     labels = features["WINorLOSS"]
     features.drop("WINorLOSS", axis=1, inplace=True)
     return features, labels
@@ -128,20 +139,22 @@ if __name__ == "__main__":
     #feature_engineering()
 
     features, labels = load_features_labels()
-    training_features = {"data": features[0:2000]}
-    training_labels = labels[0:2000]
-    testing_features = {"data": features[2000:2200]}
-    testing_labels = labels[2000:2200]
-    validation_features = {"data": features[2200:labels.size]}
-    validation_labels = labels[2200: labels.size]
+    training_testing_intersection = int(labels.size*0.6)
+    testing_validation_intersection = int(labels.size*0.8)
+    training_features = {"data": features[:training_testing_intersection]}
+    training_labels = labels[:training_testing_intersection]
+    testing_features = {"data": features[training_testing_intersection:testing_validation_intersection]}
+    testing_labels = labels[training_testing_intersection:testing_validation_intersection]
+    validation_features = {"data": features[testing_validation_intersection:labels.size]}
+    validation_labels = labels[testing_validation_intersection: labels.size]
 
     # Feature column for classifier
-    feature_columns = [tf.feature_column.numeric_column("data", shape=34)]
+    feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
 
-    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=300)
+    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=50)
 
     # Testing input fuction, returning iterator, shuffle automatically on
-    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=300)
+    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=50)
 
     # Prediction input function, one epoch
     prediction_input_fn_training = lambda: input_function(training_features, training_labels, num_epochs=1,shuffle=False)
@@ -159,7 +172,7 @@ if __name__ == "__main__":
         #hidden_units=[10, 20, 10],
         optimizer = tf.train.FtrlOptimizer(
             learning_rate=0.01,
-            l1_regularization_strength=0.015
+            l1_regularization_strength=0.001
         )
     )
 
@@ -174,7 +187,7 @@ if __name__ == "__main__":
         start_time = time.time()
         _ = dnn_classifier.train(
             input_fn=training_input_fn,
-            steps=800
+            steps=50
         )
         end_time = time.time()
         print 'Training classifier: ', end_time - start_time
