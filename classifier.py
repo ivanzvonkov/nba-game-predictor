@@ -72,7 +72,7 @@ def feature_engineering():
 
     # Drop if correlation is less than 0.1
     corr = df.corr()['WINorLOSS']
-    skip_rows = ['Team', 'Game', 'Opponent']
+    skip_rows = ['Team', 'Opponent']
     for key, value in corr.items():
         if (abs(value) < 0.1) and (key not in skip_rows):
             df.drop([key], axis=1, inplace=True)
@@ -151,10 +151,10 @@ if __name__ == "__main__":
     # Feature column for classifier
     feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
 
-    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=50)
+    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=500)
 
     # Testing input fuction, returning iterator, shuffle automatically on
-    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=50)
+    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=500)
 
     # Prediction input function, one epoch
     prediction_input_fn_training = lambda: input_function(training_features, training_labels, num_epochs=1,shuffle=False)
@@ -166,14 +166,17 @@ if __name__ == "__main__":
     prediction_input_fn_validation = lambda: input_function(validation_features, validation_labels, num_epochs=1, shuffle=False)
 
     print 'Setting up classifier'
-    dnn_classifier = tf.estimator.LinearClassifier(
+    dnn_classifier = tf.estimator.DNNClassifier(
         #model_dir=os.getcwd() + "/model/mnist-model",
         feature_columns=feature_columns,
-        #hidden_units=[10, 20, 10],
-        optimizer = tf.train.FtrlOptimizer(
-            learning_rate=0.01,
-            l1_regularization_strength=0.001
+        hidden_units=[20, 10, 5],
+        optimizer = tf.train.AdamOptimizer(
+            learning_rate=0.005,
         )
+        # optimizer = tf.train.FtrlOptimizer(
+        #     learning_rate=0.01,
+        #     l1_regularization_strength=0.001
+        # )
     )
 
     training_error = []
