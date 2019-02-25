@@ -1,3 +1,4 @@
+import os
 import time
 import pandas as pd
 import tensorflow as tf
@@ -18,7 +19,6 @@ def create_14_15_team_csv():
     df_row = 0
     df_1415_row = 0
     while df_1415_row < teams:
-
         df_1415.loc[df_1415_row, "Team"] = df.loc[df_row, "Team"]
         for column in columns:
             df_1415.loc[df_1415_row, column] = sum(df.loc[df_row:df_row+games,column])/float(games)
@@ -151,10 +151,10 @@ if __name__ == "__main__":
     # Feature column for classifier
     feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
 
-    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=500)
+    training_input_fn = lambda: input_function(training_features, training_labels, batch_size=200)
 
     # Testing input fuction, returning iterator, shuffle automatically on
-    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=500)
+    testing_input_fn = lambda: input_function(testing_features, testing_labels, batch_size=200)
 
     # Prediction input function, one epoch
     prediction_input_fn_training = lambda: input_function(training_features, training_labels, num_epochs=1,shuffle=False)
@@ -167,16 +167,16 @@ if __name__ == "__main__":
 
     print 'Setting up classifier'
     dnn_classifier = tf.estimator.DNNClassifier(
-        #model_dir=os.getcwd() + "/model/mnist-model",
+        model_dir=os.getcwd() + "/model/",
         feature_columns=feature_columns,
-        hidden_units=[20, 10, 5],
-        optimizer = tf.train.AdamOptimizer(
-            learning_rate=0.005,
-        )
-        # optimizer = tf.train.FtrlOptimizer(
-        #     learning_rate=0.01,
-        #     l1_regularization_strength=0.001
+        hidden_units=[20, 10, 20],
+        # optimizer = tf.train.AdamOptimizer(
+        #     learning_rate=0.005,
         # )
+        optimizer = tf.train.FtrlOptimizer(
+            learning_rate=0.01,
+            l1_regularization_strength=0.001
+        )
     )
 
     training_error = []
