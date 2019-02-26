@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import gzip
 import random
+import pandas as pd
 
 
 class Client:
@@ -12,7 +13,10 @@ class Client:
     # Use result in determining playoff bracket
 
     def load_feature(self, home_team, away_team):
-        return
+        df = pd.read_csv("features.csv")
+        df.drop("WINorLOSS", axis=1, inplace=True)
+        feature = df.loc[ (df['h._'+home_team] == 1) & (df['a._'+away_team] == 1)
+        return feature
 
     # Predict one 2d array feature
     def predict_one(self, one_feature):
@@ -41,9 +45,9 @@ class Client:
         print 'Hello'
 
         self.size = 1000
-
+        test = self.load_feature('ATL','BOS')
         # Feature column for classifier, shape based on 28 by 28 pixel
-        feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
+        #feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
 
         with tf.Session() as sess:
             tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], './mnist_saved_model/1536369603')
