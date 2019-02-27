@@ -1,7 +1,4 @@
 import tensorflow as tf
-import numpy as np
-import gzip
-import random
 import pandas as pd
 
 
@@ -15,7 +12,8 @@ class Client:
     def load_feature(self, home_team, away_team):
         df = pd.read_csv("features.csv")
         df.drop("WINorLOSS", axis=1, inplace=True)
-        feature = df.loc[ (df['h._'+home_team] == 1) & (df['a._'+away_team] == 1)
+        df.drop('Unnamed: 0', axis=1, inplace=True)
+        feature = df.loc[ (df['h._'+home_team] == 1) & (df['a._'+away_team] == 1)]
         return feature
 
     # Predict one 2d array feature
@@ -36,7 +34,7 @@ class Client:
 
     # Predict random digit from data
     def predict_print_out(self, one_feature):
-        prediction_value, prediction_accuracy = self.predict_one(self.features[one_feature])
+        prediction_value, prediction_accuracy = self.predict_one(one_feature)
         print 'Guessing it\'s ' + str(prediction_value) + ' with ' + str(
             "%.2f" % prediction_accuracy) + '% accuracy.'
 
@@ -44,16 +42,15 @@ class Client:
 
         print 'Hello'
 
-        self.size = 1000
-        test = self.load_feature('ATL','BOS')
-        # Feature column for classifier, shape based on 28 by 28 pixel
-        #feature_columns = [tf.feature_column.numeric_column("data", shape=features.shape[1])]
+        feature = self.load_feature('ATL','BOS')
+
+        # Feature column for classifier
+        feature_columns = [tf.feature_column.numeric_column("data", shape=feature.shape[1])]
 
         with tf.Session() as sess:
-            tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], './mnist_saved_model/1536369603')
-            self.predictor = tf.contrib.predictor.from_saved_model('./mnist_saved_model/1536369603')
-
-            #self.predict_random_digit()
+            tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], './saved_model/1551240267')
+            self.predictor = tf.contrib.predictor.from_saved_model('./saved_model/1551240267')
+            self.predict_print_out(feature)
 
 
 

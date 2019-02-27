@@ -1,4 +1,5 @@
 /.idea
 /model
 /venv
+/saved_model
 nba.games.stats.csv

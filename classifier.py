@@ -5,7 +5,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import metrics
-
+from tensorflow.python.estimator.export import export
 
 games = 82
 teams = 30
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     testing_error = []
 
     # Loop for training
-    for i in range(0, 10):
+    for i in range(0, 3):
         print '------------------------'
         print 'RUN: ', i + 1
         print '------------------------'
@@ -215,6 +215,8 @@ if __name__ == "__main__":
         print("%0.2f" % training_log_loss)
         print("%0.2f" % testing_log_loss)
 
+
+
     # Calculate final predictions (not probabilities, as above).
     testing_predictions = dnn_classifier.predict(input_fn=prediction_input_fn_testing)
     testing_predictions = np.array([item['class_ids'][0] for item in testing_predictions])
@@ -235,3 +237,6 @@ if __name__ == "__main__":
     plt.legend()
     plt.show()
 
+    # Save model
+    feature_spec = tf.feature_column.make_parse_example_spec(feature_columns=feature_columns)
+    dnn_classifier.export_savedmodel('./saved_model', export.build_parsing_serving_input_receiver_fn(feature_spec))
