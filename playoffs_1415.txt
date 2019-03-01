@@ -1,0 +1,46 @@
+Guessing GSW beat NOP with 44.02% confidence.
+GSW moving on
+Guessing HOU beat DAL with 17.12% confidence.
+HOU moving on
+Guessing SAS beat LAC with 2.24% confidence.
+SAS moving on
+Guessing POR beat MEM with 17.46% confidence.
+POR moving on
+West Round Over, teams that move on ['GSW', 'HOU', 'SAS', 'POR']
+
+Guessing GSW beat POR with 29.67% confidence.
+GSW moving on
+Guessing SAS beat HOU with 14.28% confidence.
+SAS moving on
+West Round Over, teams that move on ['GSW', 'SAS']
+
+Guessing GSW beat SAS with 25.10% confidence.
+GSW moving on
+West Round Over, teams that move on ['GSW']
+
+The WCF is GSW!
+
+Guessing ATL beat BRK with 79.47% confidence.
+ATL moving on
+Guessing CLE beat BOS with 63.85% confidence.
+CLE moving on
+Guessing CHI beat MIL with 16.07% confidence.
+CHI moving on
+Guessing WAS beat TOR with 3.13% confidence.
+WAS moving on
+East Round Over, teams that move on ['ATL', 'CLE', 'CHI', 'WAS']
+
+Guessing ATL beat WAS with 29.50% confidence.
+ATL moving on
+Guessing CLE beat CHI with 8.00% confidence.
+CLE moving on
+East Round Over, teams that move on ['ATL', 'CLE']
+
+Guessing ATL beat CLE with 21.92% confidence.
+ATL moving on
+East Round Over, teams that move on ['ATL']
+
+The ECF is ATL!
+
+Guessing GSW beat ATL with 25.99% confidence.
+GSW has won an NBA Championship!
