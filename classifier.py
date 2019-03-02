@@ -7,44 +7,57 @@ import numpy as np
 from sklearn import metrics
 from tensorflow.python.estimator.export import export
 
+# CHANGE BELOW BASED ON PLAYOFF YEAR
+# ----------------------------------------------------------------------------
+season = '1718'
+create_data = True
+# ----------------------------------------------------------------------------
+
+s = {
+    '1415': 0,
+    '1516': 1,
+    '1617': 2,
+    '1718': 3
+}
+
 games = 82
 teams = 30
 
 # load 2014-2015 stats for each team
-def create_14_15_team_csv():
+def create_team_csv():
     df = pd.read_csv("nba.games.stats.csv")
-    df_1415 = pd.DataFrame().reindex_like(df[0:teams])
-    df_1415.drop(columns=["Unnamed: 0","Game","Date","Home", "Opponent", "WINorLOSS"], axis=1, inplace=True)
-    columns = list(df_1415)[1:]
-    df_row = 0
-    df_1415_row = 0
-    while df_1415_row < teams:
-        df_1415.loc[df_1415_row, "Team"] = df.loc[df_row, "Team"]
+    df_teams = pd.DataFrame().reindex_like(df[0:teams])
+    df_teams.drop(columns=["Unnamed: 0","Game","Date","Home", "Opponent", "WINorLOSS"], axis=1, inplace=True)
+    columns = list(df_teams)[1:]
+    df_row = games*teams*s[season]
+    df_team_row = 0
+    while df_team_row < teams:
+        df_teams.loc[df_team_row, "Team"] = df.loc[df_row, "Team"]
         for column in columns:
-            df_1415.loc[df_1415_row, column] = sum(df.loc[df_row:df_row+games,column])/float(games)
+            df_teams.loc[df_team_row, column] = sum(df.loc[df_row:df_row+games,column])/float(games)
 
-        df_1415_row+=1
+        df_team_row+=1
         df_row+=games
 
-    df_1415.to_csv("nba.team.1415.csv")
+    df_teams.to_csv(season+"_season/nba.team.csv")
     return
 
-# Creates a table of all match ups and result of 14/15 season
-def create_14_15_season_csv():
+# Creates a table of all match ups and result of specified season
+def create_season_csv():
     df = pd.read_csv("nba.games.stats.csv")
     keep_columns = ["Team", "Game", "Home", "Opponent", "WINorLOSS"]
     df = df[keep_columns]
-    df = df[:games*teams]
-    df.to_csv("nba.season.1415.csv")
-    # only leave 14 15 season
-    # remove every column but team, home, opponent, WINorLoss
+    start = games*teams*s[season]
+    end = start + (games*teams)
+    df = df[start :end]
+    df.to_csv(season+"_season/nba.season.csv")
 
 # Feature - team 1 stats, team 1 location target - team 1  w/l
 def create_raw_features_csv():
     print 'making feature'
     pre ="v."
-    df_keys = pd.read_csv("nba.season.1415.csv")
-    df_values = pd.read_csv("nba.team.1415.csv")
+    df_keys = pd.read_csv(season+"_season/nba.season.csv")
+    df_values = pd.read_csv(season+"_season/nba.team.csv")
     opp_df_values = df_values.rename(columns=lambda col_name: pre+col_name)
 
     df = df_keys.merge(df_values, on=["Team"])
@@ -52,11 +65,11 @@ def create_raw_features_csv():
 
     df.drop(columns=["Unnamed: 0_x", "Unnamed: 0_y"], axis=1, inplace=True)
     df.drop(columns=[pre+"Unnamed: 0", pre+"Team"], axis=1, inplace=True)
-    df.to_csv("raw_features.csv")
+    df.to_csv(season+"_season/raw_features.csv")
 
 # Fix features so they are ready for machine learning
 def feature_engineering():
-    df = pd.read_csv("raw_features.csv")
+    df = pd.read_csv(season+"_season/raw_features.csv")
 
     # Convert Home to 1 or 0
     #df["Home"] = pd.get_dummies(df["Home"])["Home"]
@@ -97,11 +110,11 @@ def feature_engineering():
     df.drop("Opponent", axis=1, inplace=True)
     df = pd.concat([df, new_teams, new_opps], axis=1, sort=False)
 
-    df.to_csv("features.csv")
+    df.to_csv(season+"_season/features.csv")
 
 # Loads features and labels
 def load_features_labels():
-    features = pd.read_csv("features.csv").sample(frac=1)
+    features = pd.read_csv(season+"_season/features.csv").sample(frac=1)
     labels = features["WINorLOSS"]
     features.drop("WINorLOSS", axis=1, inplace=True)
     return features, labels
@@ -126,17 +139,22 @@ if __name__ == "__main__":
 
     print 'Hello'
 
-    # Creates csv for average team stats
-    #create_14_15_team_csv()
+    if create_data:
+        #Create necessary directory for data
+        if not os.path.exists(season+"_season"):
+            os.mkdir(season+"_season")
 
-    # Creates csv for season keys
-    #create_14_15_season_csv()
+        # Creates csv for average team stats
+        create_team_csv()
 
-    # Creates features csv
-    #create_raw_features_csv()
+        # Creates csv for season keys
+        create_season_csv()
 
-    # Fix feature values
-    #feature_engineering()
+        # Creates features csv
+        create_raw_features_csv()
+
+        # Fix feature values
+        feature_engineering()
 
     features, labels = load_features_labels()
     training_testing_intersection = int(labels.size*0.6)
@@ -167,7 +185,7 @@ if __name__ == "__main__":
 
     print 'Setting up classifier'
     dnn_classifier = tf.estimator.DNNClassifier(
-        model_dir=os.getcwd() + "/model/",
+        # model_dir=os.getcwd() + "/model/",
         feature_columns=feature_columns,
         hidden_units=[20, 10, 20],
         # optimizer = tf.train.AdamOptimizer(
@@ -183,7 +201,7 @@ if __name__ == "__main__":
     testing_error = []
 
     # Loop for training
-    for i in range(0, 3):
+    for i in range(0, 20):
         print '------------------------'
         print 'RUN: ', i + 1
         print '------------------------'
@@ -239,4 +257,4 @@ if __name__ == "__main__":
 
     # Save model
     feature_spec = tf.feature_column.make_parse_example_spec(feature_columns=feature_columns)
-    dnn_classifier.export_savedmodel('./saved_model', export.build_parsing_serving_input_receiver_fn(feature_spec))
+    dnn_classifier.export_savedmodel('./saved_model/season_'+season, export.build_parsing_serving_input_receiver_fn(feature_spec))

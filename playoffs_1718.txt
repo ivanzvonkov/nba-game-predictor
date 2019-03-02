@@ -1,0 +1,46 @@
+Guessing HOU beat MIN with 33.95% confidence.
+HOU moving on
+Guessing SAS beat GSW with 4.61% confidence.
+SAS moving on
+Guessing NOP beat POR with 13.72% confidence.
+NOP moving on
+Guessing OKC beat UTA with 1.03% confidence.
+OKC moving on
+West Round Over, teams that move on ['HOU', 'SAS', 'NOP', 'OKC']
+
+Guessing HOU beat OKC with 38.64% confidence.
+HOU moving on
+Guessing SAS beat NOP with 5.36% confidence.
+SAS moving on
+West Round Over, teams that move on ['HOU', 'SAS']
+
+Guessing HOU beat SAS with 23.89% confidence.
+HOU moving on
+West Round Over, teams that move on ['HOU']
+
+The WCF is HOU!
+
+Guessing TOR beat WAS with 8.34% confidence.
+TOR moving on
+Guessing BOS beat MIL with 9.96% confidence.
+BOS moving on
+Guessing PHI beat MIA with 63.95% confidence.
+PHI moving on
+Guessing CLE beat IND with 3.44% confidence.
+CLE moving on
+East Round Over, teams that move on ['TOR', 'BOS', 'PHI', 'CLE']
+
+Guessing TOR beat CLE with 11.99% confidence.
+TOR moving on
+Guessing PHI beat BOS with 15.09% confidence.
+PHI moving on
+East Round Over, teams that move on ['TOR', 'PHI']
+
+Guessing PHI beat TOR with 16.13% confidence.
+PHI moving on
+East Round Over, teams that move on ['PHI']
+
+The ECF is PHI!
+
+Guessing HOU beat PHI with 11.86% confidence.
+HOU has won an NBA Championship!

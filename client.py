@@ -6,13 +6,8 @@ import pandas as pd
 
 class Client:
 
-    # Input two teams, output which one won
-    # Create feature from two teams
-    # Feed into classifier
-    # Use result in determining playoff bracket
-
     def load_feature(self, home_team, away_team):
-        df = pd.read_csv("features.csv")
+        df = pd.read_csv(self.season+"_season/features.csv")
         df.drop("WINorLOSS", axis=1, inplace=True)
         #df.drop('Unnamed: 0', axis=1, inplace=True)
         feature = df.loc[ (df['h._'+home_team] == 1) & (df['a._'+away_team] == 1)]
@@ -92,9 +87,11 @@ class Client:
 
         # CHANGE BELOW BASED ON PLAYOFF YEAR
         # ----------------------------------------------------------------------------
-        sys.stdout = open('playoffs_1415.txt', 'w')
-        current_round_west = ['GSW', 'HOU', 'LAC', 'POR', 'MEM', 'SAS', 'DAL', 'NOP']
-        current_round_east = ['ATL', 'CLE', 'CHI', 'TOR', 'WAS', 'MIL', 'BOS', 'BRK']
+        self.season = '1718'
+        sys.stdout = open('playoffs_'+self.season+'.txt', 'w')
+        current_round_west = ['HOU', 'GSW', 'POR', 'OKC', 'UTA', 'NOP', 'SAS', 'MIN']
+        current_round_east = ['TOR', 'BOS', 'PHI', 'CLE', 'IND', 'MIA', 'MIL', 'WAS']
+        model_dir = "./saved_model/season_"+self.season+"/1551497120"
         # ----------------------------------------------------------------------------
 
         next_round_west = []
@@ -104,8 +101,8 @@ class Client:
         east_finalist_chosen = False
 
         with tf.Session() as sess:
-            tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], './saved_model/1551240267')
-            self.predictor = tf.contrib.predictor.from_saved_model('./saved_model/1551240267')
+            tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], model_dir)
+            self.predictor = tf.contrib.predictor.from_saved_model(model_dir)
 
             while True:
 

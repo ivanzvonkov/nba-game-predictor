@@ -1,0 +1,46 @@
+Guessing GSW beat HOU with 89.51% confidence.
+GSW moving on
+Guessing SAS beat MEM with 84.35% confidence.
+SAS moving on
+Guessing OKC beat DAL with 68.95% confidence.
+OKC moving on
+Guessing LAC beat POR with 8.87% confidence.
+LAC moving on
+West Round Over, teams that move on ['GSW', 'SAS', 'OKC', 'LAC']
+
+Guessing GSW beat LAC with 70.84% confidence.
+GSW moving on
+Guessing SAS beat OKC with 16.84% confidence.
+SAS moving on
+West Round Over, teams that move on ['GSW', 'SAS']
+
+Guessing GSW beat SAS with 1.30% confidence.
+GSW moving on
+West Round Over, teams that move on ['GSW']
+
+The WCF is GSW!
+
+Guessing CLE beat DET with 12.12% confidence.
+CLE moving on
+Guessing TOR beat IND with 5.32% confidence.
+TOR moving on
+Guessing MIA beat CHO with 7.72% confidence.
+MIA moving on
+Guessing BOS beat ATL with 10.50% confidence.
+BOS moving on
+East Round Over, teams that move on ['CLE', 'TOR', 'MIA', 'BOS']
+
+Guessing CLE beat BOS with 19.57% confidence.
+CLE moving on
+Guessing MIA beat TOR with 10.47% confidence.
+MIA moving on
+East Round Over, teams that move on ['CLE', 'MIA']
+
+Guessing CLE beat MIA with 13.00% confidence.
+CLE moving on
+East Round Over, teams that move on ['CLE']
+
+The ECF is CLE!
+
+Guessing GSW beat CLE with 25.52% confidence.
+GSW has won an NBA Championship!
