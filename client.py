@@ -88,11 +88,12 @@ class Client:
         # CHANGE BELOW BASED ON PLAYOFF YEAR
         # ----------------------------------------------------------------------------
         self.season = '1718'
-        sys.stdout = open('playoffs_'+self.season+'.txt', 'w')
         current_round_west = ['HOU', 'GSW', 'POR', 'OKC', 'UTA', 'NOP', 'SAS', 'MIN']
         current_round_east = ['TOR', 'BOS', 'PHI', 'CLE', 'IND', 'MIA', 'MIL', 'WAS']
         model_dir = "./saved_model/season_"+self.season+"/1551497120"
         # ----------------------------------------------------------------------------
+
+        sys.stdout = open('playoffs_'+self.season+'.txt', 'w')
 
         next_round_west = []
         next_round_east = []
