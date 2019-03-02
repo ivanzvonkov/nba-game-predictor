@@ -3,9 +3,9 @@ Predicts NBA Championship team based on team statistics from that season.
 
 ## How to run?
 1. Unzip nba-games-stats-from-2014-to-2018.zip in the directory.
-2. Set `season` variable in classifier.py. Let use `season = '1718'` as an example. 
+2. Set `season` variable in classifier.py. Let's use `season = '1718'` as an example. 
 3. Run classifier.py. This will do the followng:
-    - Create features by averaging each team's stats for the 14/15 season and parsing the stats into more feature friendly numbers
+    - Create features by averaging each team's stats for the 17/18 season and parsing the stats into more feature friendly numbers
     - Create targets based on team winning or losing games
     - Train the classifier on the features and targets
     - Save a model into the directory `saved_model/season_1718`
